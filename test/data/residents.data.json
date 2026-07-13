@@ -1,0 +1,10 @@
+{
+  "searchKeyword": "Shree",
+  "searchKeywordNotFound": "NonExistentResident123",
+  "residentTypes": [
+    "All Residents",
+    "owner",
+    "tenant"
+  ],
+  "residentName": "Shree Krishna"
+}

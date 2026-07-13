@@ -1,0 +1,12 @@
+{
+    "android": {
+        "platformName": "Android",
+        "appium:automationName": "UiAutomator2",
+        "appium:deviceName": "Physical Device",
+        "appium:udid": "PRVKMJCEJ7PZGM69",
+        "appium:appPackage": "com.mybosapps.bmapp.stg",
+        "appium:appActivity": "com.mybosapps.bmapp.MainActivity",
+        "appium:autoGrantPermissions": true,
+        "appium:newCommandTimeout": 240
+    }
+}
