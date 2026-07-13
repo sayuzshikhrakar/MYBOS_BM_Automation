@@ -4,7 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "clear-app": "adb -s PRVKMJCEJ7PZGM69 shell pm clear com.mybosapps.bmapp.stg",
+    "clear-app": "adb shell pm clear com.mybosapps.bmapp.stg",
     "test": "npm run wdio",
     "prewdio": "npm run clear-app",
     "wdio": "wdio run wdio.conf.js",

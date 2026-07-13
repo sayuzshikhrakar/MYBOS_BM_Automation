@@ -1,5 +1,19 @@
+const fs = require('fs');
+const path = require('path');
 const { execSync } = require('child_process');
-const defaultCaps = require('./capabilities.json').android;
+
+let defaultCaps = require('./capabilities.json').android;
+
+const localCapsPath = path.join(__dirname, 'capabilities.local.json');
+if (fs.existsSync(localCapsPath)) {
+    try {
+        const localCaps = require(localCapsPath).android;
+        defaultCaps = { ...defaultCaps, ...localCaps };
+    } catch (e) {
+        console.warn(`Warning: Failed to load capabilities.local.json: ${e.message}`);
+    }
+}
+
 let targetUdid = defaultCaps['appium:udid'];
 
 try {
