@@ -68,38 +68,8 @@ describe('Authentication & Login Page Validation', () => {
 
         await LoginPage.login(username, password);
 
-        // Handle the Android notification permission popup
-        try {
-            console.log('Waiting for permission popup...');
-            await browser.pause(2000); // Give the system popup time to fully animate in
-
-            // Using a very explicit UIAutomator XPath since the ID locator across packages can be flaky
-            const allowBtn = await $('//android.widget.Button[@resource-id="com.android.permissioncontroller:id/permission_allow_button" or @text="ALLOW"]');
-            await allowBtn.waitForDisplayed({ timeout: 10000 });
-
-            // Calculate center coordinates to perform a raw W3C tap, bypassing system security restrictions
-            const location = await allowBtn.getLocation();
-            const size = await allowBtn.getSize();
-            const tapX = Math.round(location.x + size.width / 2);
-            const tapY = Math.round(location.y + size.height / 2);
-
-            await driver.performActions([{
-                type: 'pointer',
-                id: 'finger1',
-                parameters: { pointerType: 'touch' },
-                actions: [
-                    { type: 'pointerMove', duration: 0, x: tapX, y: tapY },
-                    { type: 'pointerDown', button: 0 },
-                    { type: 'pause', duration: 100 },
-                    { type: 'pointerUp', button: 0 }
-                ]
-            }]);
-            await driver.releaseActions();
-
-            console.log('Permission popup dismissed via coordinate tap!');
-        } catch (e) {
-            console.log('No permission popup appeared or it timed out: ' + e.message);
-        }
+        // Handle the Android notification permission popup using the centralized BasePage method
+        await LoginPage.dismissPermissionPopup(10000);
 
         // Wait for the Dashboard Home tab to appear
         try {
