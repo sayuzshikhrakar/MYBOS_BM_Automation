@@ -2,6 +2,7 @@ const LoginPage = require('../pageobjects/login.page');
 const DashboardPage = require('../pageobjects/dashboard.page');
 const ResidentsPage = require('../pageobjects/residents.page');
 const residentsData = require('../data/residents.data.json');
+const AuthHelper = require('../utils/auth.helper');
 
 async function navigateToResidents() {
     try {
@@ -30,59 +31,7 @@ async function navigateToResidents() {
 
 describe('Residents Feature', () => {
     beforeEach(async () => {
-        const username = process.env.TEST_USER || 'sayuz.shikhrakar+james@ebpearls.com';
-        const password = process.env.TEST_PASS || 'asdfasdf';
-
-        await driver.switchContext('NATIVE_APP');
-
-        // Handle permission dialog if it appears
-        try {
-            const btnAllow = await $('//*[@resource-id="com.android.permissioncontroller:id/permission_allow_button" or @text="ALLOW" or @text="Allow"]');
-            if (await btnAllow.waitForDisplayed({ timeout: 5000 }).then(() => true).catch(() => false)) {
-                await btnAllow.click();
-                await browser.pause(1000);
-            }
-        } catch (e) { }
-
-        // Wait 3 seconds for splash screen to settle
-        await browser.pause(3000);
-
-        // Go back to the dashboard if we are nested in subpages (avoids restarting app and crashing UiAutomator2)
-        for (let i = 0; i < 3; i++) {
-            const onDashboard = await DashboardPage.tabHome.isDisplayed().catch(() => false);
-            if (onDashboard) break;
-            const onLogin = await LoginPage.inputEmail.isDisplayed().catch(() => false);
-            if (onLogin) break; // Don't press back on the login screen as it closes the app!
-            await driver.back().catch(() => { });
-            await browser.pause(1000);
-        }
-
-        // Wait for the app state to settle and check if we are logged in or redirected to login
-        let isLoggedIn = false;
-        for (let i = 0; i < 5; i++) {
-            const hasEmail = await LoginPage.inputEmail.isDisplayed().catch(() => false);
-            const hasHome = await DashboardPage.tabHome.isDisplayed().catch(() => false);
-
-            if (hasEmail) {
-                isLoggedIn = false;
-                break;
-            }
-            isLoggedIn = hasHome;
-            await browser.pause(1000);
-        }
-
-        if (!isLoggedIn) {
-            try {
-                // Wait for login screen to load and log in
-                await LoginPage.inputEmail.waitForDisplayed({ timeout: 25000 });
-                await LoginPage.login(username, password);
-                await DashboardPage.waitForHome();
-            } catch (e) {
-                const source = await driver.getPageSource();
-                require('fs').writeFileSync('login_stuck_source.xml', source);
-                throw new Error(`Failed to login. UI dumped to login_stuck_source.xml: ${e.message}`);
-            }
-        }
+        await AuthHelper.ensureLoggedIn();
     });
 
     it('should_navigate_to_residents_screen_when_residents_menu_clicked', async () => {
