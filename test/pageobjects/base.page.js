@@ -90,6 +90,43 @@ class BasePage {
         return $('//android.view.View[contains(@content-desc, "\n")]');
 >>>>>>> 1ba5ac1 (refactoring code)
     }
+
+    /**
+     * Tries to find and dismiss the Android notification permission popup across devices and emulators
+     */
+    async dismissPermissionPopup(timeout = 5000) {
+        try {
+            // Using a very explicit UIAutomator XPath since the ID locator across packages can be flaky
+            const allowBtn = await $('//android.widget.Button[@resource-id="com.android.permissioncontroller:id/permission_allow_button" or contains(@text, "ALLOW") or contains(@text, "Allow")]');
+            
+            if (await allowBtn.waitForDisplayed({ timeout }).then(() => true).catch(() => false)) {
+                this.log('Dismissing Permission Popup...');
+                
+                // Calculate center coordinates to perform a raw W3C tap, bypassing system security restrictions
+                const location = await allowBtn.getLocation();
+                const size = await allowBtn.getSize();
+                const tapX = Math.round(location.x + size.width / 2);
+                const tapY = Math.round(location.y + size.height / 2);
+
+                await driver.performActions([{
+                    type: 'pointer',
+                    id: 'finger_allow',
+                    parameters: { pointerType: 'touch' },
+                    actions: [
+                        { type: 'pointerMove', duration: 0, x: tapX, y: tapY },
+                        { type: 'pointerDown', button: 0 },
+                        { type: 'pause', duration: 100 },
+                        { type: 'pointerUp', button: 0 }
+                    ]
+                }]);
+                await driver.releaseActions();
+                await browser.pause(1000);
+                this.log('Permission popup dismissed!');
+            }
+        } catch (e) {
+            // Do nothing if it doesn't appear
+        }
+    }
 }
 
 module.exports = BasePage;

@@ -99,6 +99,7 @@ describe('Authentication & Login Page Validation', () => {
         await LoginPage.login(username, password);
 
 <<<<<<< HEAD
+<<<<<<< HEAD
         // Handle the Android notification permission popup using the centralized BasePage method
         await LoginPage.dismissPermissionPopup(10000);
 =======
@@ -135,6 +136,10 @@ describe('Authentication & Login Page Validation', () => {
             console.log('No permission popup appeared or it timed out: ' + e.message);
         }
 >>>>>>> 1ba5ac1 (refactoring code)
+=======
+        // Handle the Android notification permission popup using the centralized BasePage method
+        await LoginPage.dismissPermissionPopup(10000);
+>>>>>>> ca61a7a (refactoring the code:auth helper introduction)
 
         // Wait for the Dashboard Home tab to appear
         try {

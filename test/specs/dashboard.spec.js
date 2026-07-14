@@ -1,6 +1,7 @@
 const LoginPage = require('../pageobjects/login.page');
 const DashboardPage = require('../pageobjects/dashboard.page');
 <<<<<<< HEAD
+<<<<<<< HEAD
 const AuthHelper = require('../utils/auth.helper');
 const buildingData = require('../data/building.information.json');
 
@@ -9,11 +10,14 @@ describe('Dashboard Exploratory Tests', () => {
         await AuthHelper.ensureLoggedIn();
 =======
 const WelcomePage = require('../pageobjects/welcome.page');
+=======
+>>>>>>> ca61a7a (refactoring the code:auth helper introduction)
 const BuildingData = require('../data/building.data.json');
-const BasePage = require('../pageobjects/base.page');
+const AuthHelper = require('../utils/auth.helper');
 
 describe('Dashboard Exploratory Tests', () => {
     beforeEach(async () => {
+<<<<<<< HEAD
         // Authenticate before running dashboard tests
         const username = process.env.TEST_USER || 'sayuz.shikhrakar+james@ebpearls.com';
         const password = process.env.TEST_PASS || 'asdfasdf';
@@ -66,6 +70,9 @@ describe('Dashboard Exploratory Tests', () => {
 
         await browser.pause(2000); // Give widgets a moment to render
 >>>>>>> 1ba5ac1 (refactoring code)
+=======
+        await AuthHelper.ensureLoggedIn();
+>>>>>>> ca61a7a (refactoring the code:auth helper introduction)
     });
 
     it('Should validate Navigation Tabs', async () => {
