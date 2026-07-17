@@ -12,6 +12,13 @@ class DashboardPage extends BasePage {
     // Using a more stable hierarchical xpath:
     get btnHamburger () { return $('//android.view.View/android.widget.ImageView[1]'); }
 
+    // Sidebar Elements
+    // Assuming the down arrow might be an ImageView in the sidebar. Update locator if needed.
+    get btnBuildingDropdown () { return $('//android.widget.ImageView[contains(@content-desc, "arrow") or @index="2"]'); } 
+    
+    // Dynamic locator based on building name
+    buildingOption(name) { return $(`~${name}`); }
+
     // Dashboard Widgets (Inside ScrollView)
     get widgetMaintenance () { return $('~Maintenance Request'); }
     get widgetResidents () { return $('~Residents'); }
