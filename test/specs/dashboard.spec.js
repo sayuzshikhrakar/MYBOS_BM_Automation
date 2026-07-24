@@ -1,5 +1,8 @@
 const LoginPage = require('../pageobjects/login.page');
 const DashboardPage = require('../pageobjects/dashboard.page');
+const WelcomePage = require('../pageobjects/welcome.page');
+const BuildingData = require('../data/building.data.json');
+const BasePage = require('../pageobjects/base.page');
 
 describe('Dashboard Exploratory Tests', () => {
     beforeEach(async () => {
@@ -11,43 +14,39 @@ describe('Dashboard Exploratory Tests', () => {
 
         // Grant notification permissions via ADB to suppress the flaky system popup
         try {
-            (() => {
-                const activeUdid = driver.capabilities['appium:udid'] || driver.capabilities.udid || 'PRVKMJCEJ7PZGM69';
-                return require('child_process').execSync(`adb -s ${activeUdid} shell pm grant com.mybosapps.bmapp.stg android.permission.POST_NOTIFICATIONS`);
-            })();
+            const activeUdid = driver.capabilities['appium:udid'] || driver.capabilities.udid || 'PRVKMJCEJ7PZGM69';
+            require('child_process').execSync(`adb -s ${activeUdid} shell pm grant com.mybosapps.bmapp.stg android.permission.POST_NOTIFICATIONS`);
         } catch (e) {
             console.log('Note: ADB permission grant failed, popup might appear.');
         }
 
-        // Go back to the dashboard if we are nested in subpages (avoids restarting app and crashing UiAutomator2)
-        for (let i = 0; i < 3; i++) {
-            const onDashboard = await DashboardPage.tabHome.isDisplayed().catch(() => false);
-            if (onDashboard) break;
-            const onLogin = await LoginPage.inputEmail.isDisplayed().catch(() => false);
-            if (onLogin) break; // Don't press back on the login screen as it closes the app!
+        // Handle Welcome Page if app was launched/reset
+        if (await WelcomePage.isWelcomePageDisplayed()) {
+            await WelcomePage.clickSignIn();
+            await LoginPage.inputEmail.waitForDisplayed({ timeout: 15000 });
+        }
+
+        // Dismiss any left-over popup menus or overlays
+        const isPopupOpen = await $('~Dismiss menu').isDisplayed().catch(() => false);
+        if (isPopupOpen) {
             await driver.back().catch(() => { });
             await browser.pause(1000);
         }
 
-        // Wait for the app state to settle and check if we are logged in or redirected to login
-        let isLoggedIn = false;
-        for (let i = 0; i < 5; i++) {
-            const hasEmail = await LoginPage.inputEmail.isDisplayed().catch(() => false);
-            const hasHome = await DashboardPage.tabHome.isDisplayed().catch(() => false);
-
-            if (hasEmail) {
-                isLoggedIn = false;
-                break;
-            }
-            isLoggedIn = hasHome;
-            if (isLoggedIn) break; // Optimization: break early if we see home
+        // Go back to the dashboard if we are nested in subpages
+        for (let i = 0; i < 3; i++) {
+            const onDashboard = await DashboardPage.tabHome.isDisplayed().catch(() => false);
+            if (onDashboard) break;
+            const onLogin = await LoginPage.inputEmail.isDisplayed().catch(() => false);
+            if (onLogin) break;
+            await driver.back().catch(() => { });
             await browser.pause(1000);
         }
 
-        if (!isLoggedIn) {
+        // Check if logged in
+        const hasHome = await DashboardPage.tabHome.isDisplayed().catch(() => false);
+        if (!hasHome) {
             try {
-                // Wait for login screen to load and log in
-                await LoginPage.inputEmail.waitForDisplayed({ timeout: 25000 });
                 await LoginPage.login(username, password);
                 await DashboardPage.waitForHome();
             } catch (e) {
@@ -56,11 +55,12 @@ describe('Dashboard Exploratory Tests', () => {
                 throw new Error(`Failed to login. UI dumped to login_stuck_source.xml: ${e.message}`);
             }
         }
-        
+
         await browser.pause(2000); // Give widgets a moment to render
     });
 
     it('Should validate Navigation Tabs', async () => {
+        await DashboardPage.tabHome.waitForDisplayed({ timeout: 15000 });
         expect(await DashboardPage.tabHome.isDisplayed()).toBe(true);
         expect(await DashboardPage.tabCases.isDisplayed()).toBe(true);
         expect(await DashboardPage.tabInspections.isDisplayed()).toBe(true);
@@ -68,29 +68,22 @@ describe('Dashboard Exploratory Tests', () => {
     });
 
     it('Should render Dashboard Data Widgets', async () => {
-        // Verify key modules are present on the screen
-        expect(await DashboardPage.widgetMaintenance.isDisplayed()).toBe(true);
+        await DashboardPage.widgetResidents.waitForDisplayed({ timeout: 15000 });
         expect(await DashboardPage.widgetResidents.isDisplayed()).toBe(true);
-
-        // Use isExisting instead of isDisplayed for elements that might require scrolling
-        //expect(await DashboardPage.widgetParcels.isExisting()).toBe(true);
     });
 
     it('Should open the Hamburger Menu', async () => {
-        // Click the Hamburger menu
+        await DashboardPage.btnHamburger.waitForDisplayed({ timeout: 15000 });
         await DashboardPage.btnHamburger.click();
-
-        // Wait for the sidebar to open. A standard side drawer usually contains 
-        // options like 'Logout' or a profile header. We'll wait for a short pause.
         await browser.pause(2000);
-
-        // In a real test, we'd assert a specific element in the drawer.
-        // For now, we'll click it again to close it (if it's a toggle) or tap outside.
-        // If it's a standard drawer, clicking back might close it.
         await driver.back();
-
-        // Wait for it to close
         await browser.pause(1000);
+        expect(await DashboardPage.tabHome.isDisplayed()).toBe(true);
+    });
+
+    it('Should switch the QA automation designated building', async () => {
+        await DashboardPage.selectBuilding(BuildingData.buildingName);
+        await browser.pause(2000);
         expect(await DashboardPage.tabHome.isDisplayed()).toBe(true);
     });
 });

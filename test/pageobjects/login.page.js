@@ -1,44 +1,23 @@
 const BasePage = require('./base.page');
+const WelcomePage = require('./welcome.page');
 
 class LoginPage extends BasePage {
     // Locators based on the native representation of the WebView
     get inputEmail() { return $('//*[@resource-id="email"]'); }
     get inputPassword() { return $('//*[@resource-id="current-password"]'); }
     get btnSignIn() { return $('//*[@resource-id="loginBtn"]'); }
-    get textErrorMessage() { return $('//*[@text="Invalid email or password"]'); } // This is a generic guess, we can refine it if we know the exact error text
+    get textErrorMessage() { return $('//*[@text="Invalid email or password"]'); }
 
     async login (username, password) {
         this.log('Starting Login Flow...');
-        await this.inputEmail.waitForDisplayed({ timeout: 45000 });
-        
-        // Self-healing email input
-        this.log(`Typing "${username}" into: Email Field`);
-        for (let i = 0; i < 3; i++) {
-            await this.inputEmail.click();
-            await browser.pause(500);
-            await this.inputEmail.clearValue();
-            await browser.keys([...username]);
-            await browser.pause(500);
-            const val = await this.inputEmail.getText();
-            if (val && val.includes(username)) break;
-            this.log('Retry typing email...');
+        if (await WelcomePage.isWelcomePageDisplayed()) {
+            await WelcomePage.clickSignIn();
         }
-        
-        await this.inputPassword.waitForDisplayed();
-        
-        // Self-healing password input
-        this.log('Typing "********" into: Password Field');
-        for (let i = 0; i < 3; i++) {
-            await this.inputPassword.click();
-            await browser.pause(500);
-            await this.inputPassword.clearValue();
-            await browser.keys([...password]);
-            await browser.pause(500);
-            const val = await this.inputPassword.getText();
-            if (val && val.length > 0) break; 
-            this.log('Retry typing password...');
-        }
-        
+        await this.inputEmail.waitForDisplayed({ timeout: 15000 });
+
+        await this.clearAndType(this.inputEmail, username, 'Email Field');
+        await this.clearAndType(this.inputPassword, password, 'Password Field');
+
         if (driver.isAndroid) {
             try { await driver.hideKeyboard(); } catch(e) {}
         }
@@ -48,7 +27,6 @@ class LoginPage extends BasePage {
         this.log('Login credentials submitted.');
         
         // Handle Google Smart Lock "Save password to Google?" dialog if it appears
-        // The popup is a system-level overlay that obscures the app.
         await browser.pause(2000); // Give it time to animate in
         
         const isSignInVisible = await this.btnSignIn.isDisplayed().catch(() => false);

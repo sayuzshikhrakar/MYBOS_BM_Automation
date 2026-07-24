@@ -21,7 +21,7 @@ try {
     const lines = devicesOutput.split('\n');
     let defaultDeviceFound = false;
     let fallbackDevice = null;
-    
+
     for (const line of lines) {
         if (line.trim() === '' || line.includes('List of devices')) continue;
         const [udid, state] = line.split('\t');
@@ -34,14 +34,14 @@ try {
             }
         }
     }
-    
+
     if (!defaultDeviceFound && fallbackDevice) {
         console.log(`Default device ${targetUdid} not found. Falling back to emulator: ${fallbackDevice}`);
         targetUdid = fallbackDevice;
     } else if (!defaultDeviceFound && !fallbackDevice) {
         console.warn(`Warning: No connected devices found. Tests will likely fail.`);
     }
-} catch(e) {
+} catch (e) {
     console.error('Failed to check adb devices:', e.message);
 }
 
@@ -60,7 +60,7 @@ exports.config = {
             logPath: './'
         }]
     ],
-    
+
     // ============
     // Capabilities
     // ============
@@ -70,7 +70,7 @@ exports.config = {
         'appium:udid': targetUdid,
         'appium:noReset': true // Keep session state between tests
     }],
-    
+
     // ==================
     // Global Timeouts
     // ==================
@@ -83,14 +83,14 @@ exports.config = {
     mochaOpts: {
         timeout: 60000 // IMPORTANT: Must be higher than waitforTimeout so tests don't prematurely crash
     },
-    
+
     // ==================
     // Specify Test Files
     // ==================
     specs: [
         './test/specs/**/*.js'
     ],
-    
+
     // ==================
     // Reporting
     // ==================
@@ -98,7 +98,7 @@ exports.config = {
         ['spec', {
             showConsoleLogs: true,
             realtimeReporting: true
-        }], 
+        }],
         ['allure', {
             outputDir: 'allure-results',
             disableWebdriverStepsReporting: true,
@@ -116,31 +116,37 @@ exports.config = {
         fs.rmSync('allure-report', { recursive: true, force: true });
     },
 
-    onComplete: function(exitCode, config, capabilities, results) {
+    onComplete: function (exitCode, config, capabilities, results) {
         // Automatically generate and open the allure HTML report after tests complete
-        const { execSync } = require('child_process');
+        const { execSync, spawn } = require('child_process');
         const fs = require('fs');
         const path = require('path');
         try {
             console.log('Generating Allure Report...');
             execSync('npx allure generate allure-results --clean --single-file -o allure-report');
-            
+
             // Rename index.html to include timestamp
             const timestamp = new Date().toISOString().replace(/T/, '_').replace(/[:.]/g, '-').slice(0, 19);
             const oldPath = path.join('allure-report', 'index.html');
             const newName = `TestReport_${timestamp}.html`;
             const newPath = path.join('allure-report', newName);
-            
+
             if (fs.existsSync(oldPath)) {
                 fs.renameSync(oldPath, newPath);
                 console.log(`Test completed! Standalone report generated at: allure-report/${newName}`);
-                
-                // Open the report in the default browser
-                const openCmd = process.platform === 'win32' ? 'start' : process.platform === 'darwin' ? 'open' : 'xdg-open';
+
+                // Open the report in a detached browser process so terminal exit or Ctrl+C won't close Firefox
+                const openCmd = process.platform === 'win32' ? 'cmd' : process.platform === 'darwin' ? 'open' : 'xdg-open';
+                const args = process.platform === 'win32' ? ['/c', 'start', '""', newPath] : [newPath];
+
                 try {
-                    execSync(`${openCmd} "${newPath}"`);
+                    const reportProcess = spawn(openCmd, args, {
+                        detached: true,
+                        stdio: 'ignore'
+                    });
+                    reportProcess.unref();
                 } catch (e) {
-                    console.error('Could not automatically open the report.');
+                    console.error('Could not automatically open the report:', e.message);
                 }
             }
         } catch (error) {
