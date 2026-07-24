@@ -10,8 +10,8 @@ class BasePage {
         // so we inject the action directly into the Allure Report!
         try {
             allureReporter.addStep(`[ACTION] ${message}`);
-        } catch (e) {}
-        
+        } catch (e) { }
+
         console.log(`\x1b[36m[${time}] [ACTION]\x1b[0m ${message}`);
     }
 
@@ -48,6 +48,7 @@ class BasePage {
         await option.click();
     }
 
+<<<<<<< HEAD
     /**
      * Tries to find and dismiss the Android notification permission popup across devices and emulators
      */
@@ -83,6 +84,11 @@ class BasePage {
         } catch (e) {
             // Do nothing if it doesn't appear
         }
+=======
+    // ✅ Matches ANY building header without needing a specific building name!
+    get btnBuildingSelector() {
+        return $('//android.view.View[contains(@content-desc, "\n")]');
+>>>>>>> 1ba5ac1 (refactoring code)
     }
 }
 
