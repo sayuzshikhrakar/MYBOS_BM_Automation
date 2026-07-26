@@ -45,33 +45,35 @@ class DashboardPage extends BasePage {
         await this.tabHome.waitForDisplayed({ timeout: 30000 });
     }
 
+    async isCurrentBuilding(buildingName) {
+        try {
+            const headerEl = await $(`//*[contains(@content-desc, "${buildingName}")]`);
+            return await headerEl.isDisplayed().catch(() => false);
+        } catch (e) {
+            return false;
+        }
+    }
+
     async selectBuilding(buildingName) {
-        this.log(`Opening building selector dropdown...`);
+        const alreadyActive = await this.isCurrentBuilding(buildingName);
+        if (alreadyActive) {
+            this.log(`Building "${buildingName}" is already active. Skipping building switch.`);
+            return;
+        }
+
+        this.log(`Switching active building to "${buildingName}" via hamburger menu...`);
 
         const activeUdid = driver.capabilities['appium:udid'] || driver.capabilities.udid || 'PRVKMJCEJ7PZGM69';
 
-        // Check if popup menu is already open
-        let popupOpened = await $('~Dismiss menu').isDisplayed().catch(() => false);
+        this.log('Tapping Hamburger menu button...');
+        await this.btnHamburger.click();
+        await browser.pause(2000);
 
-        if (!popupOpened) {
-            // Send ADB hardware touch taps directly to center of building header (X: 540, Y: 185 and Y: 259)
-            const coords = [[540, 185], [540, 259], [540, 220]];
-            for (const [x, y] of coords) {
-                this.log(`ADB tapping building header at (${x}, ${y})...`);
-                try {
-                    execSync(`adb -s ${activeUdid} shell input tap ${x} ${y}`);
-                } catch (e) {
-                    console.log('ADB tap fallback error: ' + e.message);
-                }
-                await browser.pause(1500);
-
-                popupOpened = await $('~Dismiss menu').isDisplayed().catch(() => false);
-                if (popupOpened) {
-                    this.log('Building selection popup menu opened successfully!');
-                    break;
-                }
-            }
-        }
+        this.log('Tapping building switcher inside hamburger drawer...');
+        const drawerBuildingSwitcher = await $('//*[@tooltip-text="Show menu" or contains(@content-desc, "Kipps") or contains(@content-desc, "Lane") or contains(@content-desc, "QA")]');
+        await drawerBuildingSwitcher.waitForDisplayed({ timeout: 10000 });
+        await drawerBuildingSwitcher.click();
+        await browser.pause(2000);
 
         this.log(`Selecting building option matching: "${buildingName}"`);
         let buildingOption = this.getBuildingOption(buildingName);
@@ -79,18 +81,16 @@ class DashboardPage extends BasePage {
         // Check if visible immediately
         let isVisible = await buildingOption.isDisplayed().catch(() => false);
 
-        // If not visible immediately (item is lower down in popup list), scroll down using pointer drag
+        // If not visible immediately (item is lower down in popup list), scroll down using ADB swipe
         if (!isVisible) {
             this.log(`Scrolling popup list to find "${buildingName}"...`);
-            for (let i = 0; i < 5; i++) {
-                await browser.action('pointer')
-                    .move({ x: 300, y: 1800 })
-                    .down()
-                    .pause(200)
-                    .move({ x: 300, y: 700, duration: 600 })
-                    .up()
-                    .perform();
-                await browser.pause(800);
+            for (let i = 0; i < 6; i++) {
+                try {
+                    execSync(`adb -s ${activeUdid} shell input swipe 285 850 285 350 400`);
+                } catch (adbErr) {
+                    console.log('ADB swipe error: ' + adbErr.message);
+                }
+                await browser.pause(1000);
                 isVisible = await buildingOption.isDisplayed().catch(() => false);
                 if (isVisible) break;
             }
@@ -98,7 +98,7 @@ class DashboardPage extends BasePage {
 
         await buildingOption.waitForDisplayed({ timeout: 15000 });
         await buildingOption.click();
-        await browser.pause(1500);
+        await browser.pause(2000);
         this.log(`Building "${buildingName}" selected successfully.`);
     }
 }

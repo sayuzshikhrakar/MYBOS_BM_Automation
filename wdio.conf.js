@@ -116,6 +116,19 @@ exports.config = {
         fs.rmSync('allure-report', { recursive: true, force: true });
     },
 
+    afterSession: function (config, capabilities, specs) {
+        // Automatically clear app cache and data after tests complete
+        try {
+            const targetUdid = capabilities['appium:udid'] || '127.0.0.1:6555';
+            const appId = capabilities['appium:appPackage'] || 'com.mybosapps.bmapp.stg';
+            console.log(`Clearing app data & cache for ${appId}...`);
+            execSync(`adb -s ${targetUdid} shell pm clear ${appId}`);
+            console.log('App data & cache cleared successfully.');
+        } catch (e) {
+            console.log('Notice: Failed to clear app data: ' + e.message);
+        }
+    },
+
     onComplete: function (exitCode, config, capabilities, results) {
         // Automatically generate and open the allure HTML report after tests complete
         const { execSync, spawn } = require('child_process');
