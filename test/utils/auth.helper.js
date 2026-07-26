@@ -1,12 +1,13 @@
 const LoginPage = require('../pageobjects/login.page');
 const DashboardPage = require('../pageobjects/dashboard.page');
+const BuildingData = require('../data/building.data.json');
 
 class AuthHelper {
     /**
-     * Ensures the app is securely logged in and on the dashboard state.
-     * Use this in the `beforeEach` block of any spec that requires an authenticated session.
+     * Ensures the app is securely logged in, on the dashboard state, and switched to the target building (default: QA Automation).
+     * Use this in the `beforeEach` block of any spec that requires an authenticated session and building context.
      */
-    async ensureLoggedIn() {
+    async ensureLoggedIn(targetBuilding = BuildingData.buildingName) {
         const username = process.env.TEST_USER || 'sayuz.shikhrakar+james@ebpearls.com';
         const password = process.env.TEST_PASS || 'asdfasdf';
 
@@ -68,7 +69,14 @@ class AuthHelper {
             }
         }
 
-        await browser.pause(2000); // Give widgets a moment to render
+        await DashboardPage.waitForHome();
+
+        // Automatically ensure the requested building (e.g. QA Automation) is selected
+        if (targetBuilding) {
+            await DashboardPage.selectBuilding(targetBuilding);
+        }
+
+        await browser.pause(1000); // Give widgets a moment to render
     }
 }
 
