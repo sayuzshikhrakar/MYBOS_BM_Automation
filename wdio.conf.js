@@ -81,7 +81,7 @@ exports.config = {
     // ==================
     framework: 'mocha',
     mochaOpts: {
-        timeout: 60000 // IMPORTANT: Must be higher than waitforTimeout so tests don't prematurely crash
+        timeout: 120000 // Increased to 120s to accommodate fresh logins after app cache is cleared
     },
 
     // ==================
@@ -119,10 +119,10 @@ exports.config = {
     afterSession: function (config, capabilities, specs) {
         // Automatically clear app cache and data after tests complete
         try {
-            const targetUdid = capabilities['appium:udid'] || '127.0.0.1:6555';
-            const appId = capabilities['appium:appPackage'] || 'com.mybosapps.bmapp.stg';
+            const activeUdid = capabilities['appium:udid'] || capabilities.udid || capabilities.deviceUDID || targetUdid;
+            const appId = capabilities['appium:appPackage'] || capabilities.appPackage || 'com.mybosapps.bmapp.stg';
             console.log(`Clearing app data & cache for ${appId}...`);
-            execSync(`adb -s ${targetUdid} shell pm clear ${appId}`);
+            execSync(`adb -s ${activeUdid} shell pm clear ${appId}`);
             console.log('App data & cache cleared successfully.');
         } catch (e) {
             console.log('Notice: Failed to clear app data: ' + e.message);

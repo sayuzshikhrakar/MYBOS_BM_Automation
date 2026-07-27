@@ -1,5 +1,6 @@
 const LoginPage = require('../pageobjects/login.page');
 const DashboardPage = require('../pageobjects/dashboard.page');
+const WelcomePage = require('../pageobjects/welcome.page');
 const BuildingData = require('../data/building.data.json');
 
 class AuthHelper {
@@ -15,10 +16,9 @@ class AuthHelper {
 
         // Grant notification permissions via ADB to suppress the flaky system popup
         try {
-            (() => {
-                const activeUdid = driver.capabilities['appium:udid'] || driver.capabilities.udid || 'PRVKMJCEJ7PZGM69';
-                return require('child_process').execSync(`adb -s ${activeUdid} shell pm grant com.mybosapps.bmapp.stg android.permission.POST_NOTIFICATIONS`);
-            })();
+            const activeUdid = driver.capabilities['appium:udid'] || driver.capabilities.udid || 'PRVKMJCEJ7PZGM69';
+            require('child_process').execSync(`adb -s ${activeUdid} shell pm grant com.mybosapps.bmapp.stg android.permission.POST_NOTIFICATIONS`);
+            await driver.activateApp('com.mybosapps.bmapp.stg');
         } catch (e) {
             console.log('Note: ADB permission grant failed, popup might appear.');
         }
@@ -32,6 +32,8 @@ class AuthHelper {
             if (onDashboard) break;
             const onLogin = await LoginPage.inputEmail.isDisplayed().catch(() => false);
             if (onLogin) break; // Don't press back on the login screen as it closes the app!
+            const onWelcome = await WelcomePage.isWelcomePageDisplayed().catch(() => false);
+            if (onWelcome) break;
             await driver.back().catch(() => { });
             await browser.pause(1000);
         }
@@ -44,8 +46,9 @@ class AuthHelper {
 
             const hasEmail = await LoginPage.inputEmail.isDisplayed().catch(() => false);
             const hasHome = await DashboardPage.tabHome.isDisplayed().catch(() => false);
+            const hasWelcome = await WelcomePage.isWelcomePageDisplayed().catch(() => false);
 
-            if (hasEmail) {
+            if (hasEmail || hasWelcome) {
                 isLoggedIn = false;
                 break;
             }
@@ -58,8 +61,6 @@ class AuthHelper {
 
         if (!isLoggedIn) {
             try {
-                // Wait for login screen to load and log in
-                await LoginPage.inputEmail.waitForDisplayed({ timeout: 25000 });
                 await LoginPage.login(username, password);
                 await DashboardPage.waitForHome();
             } catch (e) {

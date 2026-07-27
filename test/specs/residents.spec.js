@@ -3,6 +3,7 @@ const DashboardPage = require('../pageobjects/dashboard.page');
 const ResidentsPage = require('../pageobjects/residents.page');
 const residentsData = require('../data/residents.data.json');
 const AuthHelper = require('../utils/auth.helper');
+const Utils = require('../utils/utils');
 
 async function navigateToResidents() {
     try {
@@ -96,10 +97,30 @@ describe('Residents Feature', () => {
         await navigateToResidents();
         await ResidentsPage.waitForListOrEmptyState();
 
+        // Search for resident keyword to locate Sophia Rodriguez
+        await ResidentsPage.searchFor(residentsData.searchKeyword);
+        await ResidentsPage.waitForListOrEmptyState();
+
         const residents = await ResidentsPage.listResidents;
         if (residents.length > 0) {
             await ResidentsPage.viewDetailsFor(0);
             await browser.pause(2000);
+
+            // Verify all fields from residents.data.json on the Resident Details page
+            await Utils.verifyFieldVisible(residentsData.residentName, 'Resident Name');
+            await Utils.verifyFieldVisible(residentsData.residentApartment, 'Apartment');
+            await Utils.verifyFieldVisible(residentsData.residentLot, 'Lot');
+            await Utils.verifyFieldVisible(residentsData.residentHomePhone, 'Home Phone');
+            await Utils.verifyFieldVisible(residentsData.residentMobile, 'Mobile');
+            await Utils.verifyFieldVisible(residentsData.residentEmail, 'Email');
+            await Utils.verifyFieldVisible(residentsData.residentType, 'Resident Type');
+            await Utils.verifyFieldVisible(residentsData.residentSCMember, 'SC Member');
+            await Utils.verifyFieldVisible(residentsData.residentCustomgroup, 'Custom Group');
+            await Utils.verifyFieldVisible(residentsData.residentMoveindate, 'Move-in Date');
+            await Utils.verifyFieldVisible(residentsData.residentEmergencyName, 'Emergency Name');
+            await Utils.verifyFieldVisible(residentsData.residentContactnumber, 'Emergency Contact Number');
+
+            // Return to residents list
             await driver.back().catch(() => { });
             await ResidentsPage.inputSearch.waitForDisplayed({ timeout: 10000 });
         } else {
