@@ -43,7 +43,7 @@ class BasePage {
     async selectDropdownOption(dropdownSelector, optionText, dropdownName = 'Dropdown') {
         await this.waitAndTap(dropdownSelector, dropdownName);
         this.log(`Selecting option: "${optionText}"`);
-        const option = await $(`~${optionText}`);
+        const option = await $(`//*[contains(@content-desc, "${optionText}") or contains(@text, "${optionText}")]`);
         await option.waitForDisplayed({ timeout: 10000 });
         await option.click();
     }

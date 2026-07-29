@@ -24,6 +24,7 @@ class DashboardPage extends BasePage {
     get widgetMaintenance() { return $('~Maintenance Request'); }
     get widgetResidents() { return $('~Residents'); }
     get widgetParcels() { return $('~Parcels'); }
+    get widgetContractors() { return $('~Contractors'); }
 
     async waitForHome() {
         this.log('Waiting for Dashboard to load...');

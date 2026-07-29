@@ -11,6 +11,7 @@
     "test:login": "wdio run wdio.conf.js --spec test/specs/login.spec.js",
     "test:dashboard": "wdio run wdio.conf.js --spec test/specs/dashboard.spec.js",
     "test:residents": "wdio run wdio.conf.js --spec test/specs/residents.spec.js",
+    "test:contractors": "wdio run wdio.conf.js --spec test/specs/contractors.spec.js",
     "report": "allure generate allure-results --clean --single-file -o allure-report",
     "allure:open": "allure open allure-report"
   },
