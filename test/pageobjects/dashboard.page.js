@@ -10,7 +10,6 @@ class DashboardPage extends BasePage {
 
     // Header Elements
     get btnHamburger() { return $('//android.view.View/android.widget.ImageView[1]'); }
-
     // Header Building Selector Text
     get btnBuildingSelector() {
         return $('//android.view.View[contains(@content-desc, "Kipps") or contains(@content-desc, "\n")]');

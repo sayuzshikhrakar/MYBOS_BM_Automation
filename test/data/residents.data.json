@@ -1,10 +1,21 @@
 {
-  "searchKeyword": "Shree",
+  "searchKeyword": "Sophia Rodri",
   "searchKeywordNotFound": "NonExistentResident123",
   "residentTypes": [
     "All Residents",
     "owner",
     "tenant"
   ],
-  "residentName": "Shree Krishna"
+  "residentName": "Sophia Rodriguez",
+  "residentApartment": "302",
+  "residentLot": "L-302",
+  "residentHomePhone": "0245678912",
+  "residentMobile": "0456789012",
+  "residentEmail": "sayuz.shikhrakar+sophira@ebpearls.com",
+  "residentType": "Owner",
+  "residentSCMember": "None",
+  "residentCustomgroup": "N/A",
+  "residentMoveindate": "N/A",
+  "residentEmergencyName": "Carlos Rodriguez",
+  "residentContactnumber": "0456789013"
 }
