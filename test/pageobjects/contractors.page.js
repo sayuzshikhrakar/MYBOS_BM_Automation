@@ -11,24 +11,24 @@ class ContractorsPage extends BasePage {
     get dropdownCategory() { return $('//*[contains(@content-desc, "All") or contains(@text, "All")]'); }
 
     // List & Empty State Locators
-    get listContractors() { return $$('//android.view.View[contains(@content-desc, "' + "\n" + '")]'); }
+    get listContractors() { return $$('//*[contains(@content-desc, "' + "\n" + '") and not(contains(@content-desc, "Tab ")) and not(contains(@content-desc, "Contractors"))]'); }
     get textEmptyState() { return $('//*[@content-desc[contains(., "No contractors")] or @content-desc[contains(., "no")] or @text[contains(., "No")] or @content-desc[contains(., "Empty")]]'); }
 
     // Dynamic locators based on 0-indexed position in list
     getContractorItem(index) {
-        return $(`(//android.view.View[contains(@content-desc, "` + "\n" + `")])[${index + 1}]`);
+        return $(`(//*[contains(@content-desc, "` + "\n" + `") and not(contains(@content-desc, "Tab ")) and not(contains(@content-desc, "Contractors"))])[${index + 1}]`);
     }
 
     getBtnEmail(index) {
-        return $(`(//android.view.View[contains(@content-desc, "` + "\n" + `")])[${index + 1}]//android.widget.ImageView[1]`);
+        return $(`(//*[contains(@content-desc, "` + "\n" + `") and not(contains(@content-desc, "Tab ")) and not(contains(@content-desc, "Contractors"))])[${index + 1}]//android.widget.ImageView[1]`);
     }
 
     getBtnPhone(index) {
-        return $(`(//android.view.View[contains(@content-desc, "` + "\n" + `")])[${index + 1}]//android.widget.ImageView[2]`);
+        return $(`(//*[contains(@content-desc, "` + "\n" + `") and not(contains(@content-desc, "Tab ")) and not(contains(@content-desc, "Contractors"))])[${index + 1}]//android.widget.ImageView[2]`);
     }
 
     getBtnDocument(index) {
-        return $(`(//android.view.View[contains(@content-desc, "` + "\n" + `")])[${index + 1}]//android.widget.ImageView[1]`);
+        return this.getContractorItem(index);
     }
 
     // Interaction Methods
