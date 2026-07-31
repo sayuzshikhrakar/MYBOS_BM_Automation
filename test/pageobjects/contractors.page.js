@@ -38,6 +38,10 @@ class ContractorsPage extends BasePage {
      */
     async selectTab(tabName) {
         this.log(`Switching to sub-tab: "${tabName}"`);
+        const isSearchVisible = await this.inputSearch.isDisplayed().catch(() => false);
+        if (isSearchVisible) {
+            await this.inputSearch.clearValue().catch(() => { });
+        }
         const tabEl = await $(`//*[contains(@content-desc, "${tabName}") or contains(@text, "${tabName}")]`);
         await this.waitAndTap(tabEl, `Sub-Tab "${tabName}"`);
         await browser.pause(1500);
@@ -74,8 +78,11 @@ class ContractorsPage extends BasePage {
     async searchFor(keyword) {
         this.log(`Searching for contractor keyword: "${keyword}"`);
         await this.waitAndTap(this.inputSearch, 'Search Input');
+        await this.inputSearch.clearValue().catch(() => { });
         await this.inputSearch.setValue(keyword);
-        await browser.pause(2000); // Allow automatic debounced filtering to complete
+        await driver.pressKeyCode(66).catch(() => { }); // Android KEYCODE_ENTER triggers Flutter onChanged
+        await driver.keys(['Enter']).catch(() => { });
+        await browser.pause(3000); // Allow automatic debounced filtering to complete in normal mode
         await driver.hideKeyboard().catch(() => { });
     }
 

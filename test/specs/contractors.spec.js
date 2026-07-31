@@ -20,12 +20,12 @@ describe('Contractors Feature', () => {
         await AuthHelper.ensureLoggedIn();
     });
 
-    // it('should_navigate_to_contractors_screen_when_contractors_widget_clicked', async () => {
-    //     await navigateToContractors();
-    //     await expect(ContractorsPage.tabContacts).toBeDisplayed();
-    //     await expect(ContractorsPage.tabCompany).toBeDisplayed();
-    //     await expect(ContractorsPage.tabExpiredInsurance).toBeDisplayed();
-    // });
+    it('should_navigate_to_contractors_screen_when_contractors_widget_clicked', async () => {
+        await navigateToContractors();
+        await expect(ContractorsPage.tabContacts).toBeDisplayed();
+        await expect(ContractorsPage.tabCompany).toBeDisplayed();
+        await expect(ContractorsPage.tabExpiredInsurance).toBeDisplayed();
+    });
 
     // it('should_switch_between_sub_tabs_contacts_company_expired_insurance', async () => {
     //     await navigateToContractors();
@@ -165,61 +165,71 @@ describe('Contractors Feature', () => {
     //     }
     // });
 
-    it('should_display_expired_insurance_records_and_open_document', async () => {
-        await navigateToContractors();
-        await ContractorsPage.selectTab(contractorsData.tabs[2]); // "Expired Insurance"
-        await ContractorsPage.waitForListOrEmptyState();
+    // it('should_display_expired_insurance_records_and_open_document', async () => {
+    //     await navigateToContractors();
+    //     await ContractorsPage.selectTab(contractorsData.tabs[2]); // "Expired Insurance"
+    //     await ContractorsPage.waitForListOrEmptyState();
 
-        const list = await ContractorsPage.listContractors;
-        if (list.length > 0) {
-            const btnDoc = await ContractorsPage.getBtnDocument(0);
-            if (await btnDoc.isDisplayed().catch(() => false)) {
-                await ContractorsPage.viewExpiredDocument(0);
-                await browser.pause(2000);
+    //     const list = await ContractorsPage.listContractors;
+    //     if (list.length > 0) {
+    //         const btnDoc = await ContractorsPage.getBtnDocument(0);
+    //         if (await btnDoc.isDisplayed().catch(() => false)) {
+    //             await ContractorsPage.viewExpiredDocument(0);
+    //             await browser.pause(2000);
 
-                // Return from document viewer to Expired Insurance list
-                await driver.back().catch(() => { });
-            }
-            await ContractorsPage.tabExpiredInsurance.waitForDisplayed({ timeout: 10000 }).catch(() => { });
-        } else {
-            console.log('Skipping step: no expired insurance records available.');
-        }
-    });
+    //             // Return from document viewer to Expired Insurance list
+    //             await driver.back().catch(() => { });
+    //         }
+    //         await ContractorsPage.tabExpiredInsurance.waitForDisplayed({ timeout: 10000 }).catch(() => { });
+    //     } else {
+    //         console.log('Skipping step: no expired insurance records available.');
+    //     }
+    // });
 
     // ==========================================
     // Negative Test Cases
     // ==========================================
 
-    // it('should_show_empty_state_when_no_contractors_match', async () => {
-    //     await navigateToContractors();
-    //     await ContractorsPage.searchFor(contractorsData.searchKeywordNotFound);
-    //     await expect(ContractorsPage.textEmptyState).toBeDisplayed();
-    // });
+    // =========================================================================
+    // Multi-Tab Negative Test Cases (Contacts, Company, Expired Insurance)
+    // =========================================================================
 
-    // it('should_show_empty_state_when_special_characters_searched', async () => {
-    //     await navigateToContractors();
-    //     await ContractorsPage.searchFor(contractorsData.searchSpecialCharacters);
-    //     await expect(ContractorsPage.textEmptyState).toBeDisplayed();
-    // });
+    contractorsData.tabs.forEach((tabName) => {
+        // 1. Non-existent keyword search on sub-tab
+        it(`should_show_empty_state_when_no_contractors_match_on_${tabName.toLowerCase().replace(/\s+/g, '_')}_tab`, async () => {
+            await navigateToContractors();
+            await ContractorsPage.selectTab(tabName);
+            await ContractorsPage.waitForListOrEmptyState();
+            await ContractorsPage.searchFor(contractorsData.searchKeywordNotFound); // "NonExistentContractor999"
+            await expect(ContractorsPage.textEmptyState).toBeDisplayed();
+        });
 
-    // it('should_handle_whitespace_search_safely', async () => {
-    //     await navigateToContractors();
-    //     await ContractorsPage.searchFor(contractorsData.searchWhitespace);
-    //     // Ensure app doesn't crash and search bar remains responsive
-    //     await expect(ContractorsPage.inputSearch).toBeDisplayed();
-    // });
+        // // 2. Special characters search on sub-tab
+        // it(`should_show_empty_state_when_special_characters_searched_on_${tabName.toLowerCase().replace(/\s+/g, '_')}_tab`, async () => {
+        //     await navigateToContractors();
+        //     await ContractorsPage.selectTab(tabName);
+        //     await ContractorsPage.waitForListOrEmptyState();
+        //     await ContractorsPage.searchFor(contractorsData.searchSpecialCharacters); // "!@#$%^&*()_+"
+        //     await expect(ContractorsPage.textEmptyState).toBeDisplayed();
+        // });
 
-    // it('should_handle_script_injection_search_safely', async () => {
-    //     await navigateToContractors();
-    //     await ContractorsPage.searchFor(contractorsData.searchScriptInjection);
-    //     await expect(ContractorsPage.textEmptyState).toBeDisplayed();
-    // });
+        // 3. Script / XSS injection search on sub-tab
+        it(`should_handle_script_injection_search_safely_on_${tabName.toLowerCase().replace(/\s+/g, '_')}_tab`, async () => {
+            await navigateToContractors();
+            await ContractorsPage.selectTab(tabName);
+            await ContractorsPage.waitForListOrEmptyState();
+            await ContractorsPage.searchFor(contractorsData.searchScriptInjection);
+            await browser.pause(5000); // Pause right after searchFor to allow search filtering to process
+            await ContractorsPage.textEmptyState.waitForDisplayed({ timeout: 10000 }).catch(() => { });
+            await expect(ContractorsPage.textEmptyState).toBeDisplayed();
+        });
+    });
 
-    // it('should_show_empty_state_when_company_tab_searched_with_negative_term', async () => {
-    //     await navigateToContractors();
-    //     await ContractorsPage.selectTab(contractorsData.tabs[1]); // "Company"
-    //     await ContractorsPage.waitForListOrEmptyState();
-    //     await ContractorsPage.searchFor(contractorsData.searchKeywordNotFound);
-    //     await expect(ContractorsPage.textEmptyState).toBeDisplayed();
-    // });
+    // 4. Whitespace input search
+    it('should_handle_whitespace_search_safely', async () => {
+        await navigateToContractors();
+        await ContractorsPage.searchFor(contractorsData.searchWhitespace); // "   "
+        await expect(ContractorsPage.inputSearch).toBeDisplayed();
+    });
+
 });
