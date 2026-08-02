@@ -85,11 +85,44 @@ exports.config = {
     },
 
     // ==================
-    // Specify Test Files
+    // Execution Controls
+    // ==================
+    specFileRetries: 1,
+    bail: 0,
+
+    // ==================
+    // Specify Test Files & Suites
     // ==================
     specs: [
         './test/specs/**/*.js'
     ],
+    suites: {
+        regression: [
+            './test/specs/login.spec.js',
+            './test/specs/dashboard.spec.js',
+            './test/specs/residents.spec.js',
+            './test/specs/contractors.spec.js'
+        ],
+        smoke: [
+            './test/specs/login.spec.js',
+            './test/specs/dashboard.spec.js'
+        ],
+        sanity: [
+            './test/specs/login.spec.js'
+        ],
+        login: [
+            './test/specs/login.spec.js'
+        ],
+        dashboard: [
+            './test/specs/dashboard.spec.js'
+        ],
+        residents: [
+            './test/specs/residents.spec.js'
+        ],
+        contractors: [
+            './test/specs/contractors.spec.js'
+        ]
+    },
 
     // ==================
     // Reporting
@@ -164,10 +197,11 @@ exports.config = {
             console.log('Generating Allure Report...');
             execSync('npx allure generate allure-results --clean --single-file -o allure-report');
 
-            // Rename index.html to include timestamp
+            // Rename index.html to include timestamp and suite name prefix if present
             const timestamp = new Date().toISOString().replace(/T/, '_').replace(/[:.]/g, '-').slice(0, 19);
+            const suitePrefix = process.env.SUITE_NAME || 'Test';
             const oldPath = path.join('allure-report', 'index.html');
-            const newName = `TestReport_${timestamp}.html`;
+            const newName = `${suitePrefix}_Report_${timestamp}.html`;
             const newPath = path.join('allure-report', newName);
 
             if (fs.existsSync(oldPath)) {
