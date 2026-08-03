@@ -46,6 +46,9 @@ try {
 }
 
 exports.config = {
+    // Limit to 1 worker instance at root level so specs run sequentially on single device
+    maxInstances: 1,
+
     // =====================
     // Appium Setup
     // =====================

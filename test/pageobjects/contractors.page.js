@@ -52,8 +52,15 @@ class ContractorsPage extends BasePage {
      */
     async waitForListOrEmptyState() {
         this.log('Waiting for Contractor list to populate or show empty state...');
+        const AuthHelper = require('../utils/auth.helper');
         try {
             await browser.waitUntil(async () => {
+                // Check if JWT token invalid error is on screen
+                if (await AuthHelper.isTokenInvalid()) {
+                    this.log('WARNING: JWT Token invalid error detected while waiting for Contractor list! Triggering session recovery...');
+                    await AuthHelper.ensureLoggedIn();
+                    return false;
+                }
                 const list = await this.listContractors;
                 if (list.length > 0) return true;
                 try {
@@ -62,7 +69,7 @@ class ContractorsPage extends BasePage {
                     return false;
                 }
             }, {
-                timeout: 10000,
+                timeout: 15000,
                 timeoutMsg: 'Expected contractor list to populate or empty state to show'
             });
         } catch (e) {

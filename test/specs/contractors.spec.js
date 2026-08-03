@@ -7,6 +7,10 @@ const Utils = require('../utils/utils');
 
 async function navigateToContractors() {
     try {
+        await driver.hideKeyboard().catch(() => { });
+        const onContractors = await ContractorsPage.inputSearch.isDisplayed().catch(() => false);
+        if (onContractors) return;
+
         await ContractorsPage.waitAndTap(DashboardPage.widgetContractors, 'Contractors Dashboard Widget');
     } catch (e) {
         const source = await driver.getPageSource();
@@ -210,6 +214,7 @@ describe('Contractors Feature', () => {
             await ContractorsPage.selectTab(tabName);
             await ContractorsPage.waitForListOrEmptyState();
             await ContractorsPage.searchFor(contractorsData.searchSpecialCharacters); // "!@#$%^&*()_+"
+            await ContractorsPage.textEmptyState.waitForDisplayed({ timeout: 10000 }).catch(() => { });
             await expect(ContractorsPage.textEmptyState).toBeDisplayed();
         });
 
