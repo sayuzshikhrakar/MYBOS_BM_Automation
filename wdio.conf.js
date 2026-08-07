@@ -46,6 +46,9 @@ try {
 }
 
 exports.config = {
+    // Limit to 1 worker instance at root level so specs run sequentially on single device
+    maxInstances: 1,
+
     // =====================
     // Appium Setup
     // =====================
@@ -85,11 +88,44 @@ exports.config = {
     },
 
     // ==================
-    // Specify Test Files
+    // Execution Controls
+    // ==================
+    specFileRetries: 1,
+    bail: 0,
+
+    // ==================
+    // Specify Test Files & Suites
     // ==================
     specs: [
         './test/specs/**/*.js'
     ],
+    suites: {
+        regression: [
+            './test/specs/login.spec.js',
+            './test/specs/dashboard.spec.js',
+            './test/specs/residents.spec.js',
+            './test/specs/contractors.spec.js'
+        ],
+        smoke: [
+            './test/specs/login.spec.js',
+            './test/specs/dashboard.spec.js'
+        ],
+        sanity: [
+            './test/specs/login.spec.js'
+        ],
+        login: [
+            './test/specs/login.spec.js'
+        ],
+        dashboard: [
+            './test/specs/dashboard.spec.js'
+        ],
+        residents: [
+            './test/specs/residents.spec.js'
+        ],
+        contractors: [
+            './test/specs/contractors.spec.js'
+        ]
+    },
 
     // ==================
     // Reporting
@@ -110,10 +146,36 @@ exports.config = {
     // Hooks
     // ===================
     onPrepare: function (config, capabilities) {
-        // Automatically delete previous allure reports before a run
+        // Automatically delete previous allure reports and screenshots before a run
         const fs = require('fs');
         fs.rmSync('allure-results', { recursive: true, force: true });
         fs.rmSync('allure-report', { recursive: true, force: true });
+        fs.rmSync('screenshots', { recursive: true, force: true });
+    },
+
+    afterTest: async function (test, context, { error, result, duration, passed, retries }) {
+        if (!passed) {
+            try {
+                console.log(`Test "${test.title}" failed. Capturing failure screenshot...`);
+                // Attach screenshot to Allure report
+                await driver.takeScreenshot();
+
+                // Also save screenshot to local ./screenshots folder
+                const fs = require('fs');
+                const path = require('path');
+                const screenshotsDir = path.join(__dirname, 'screenshots');
+                if (!fs.existsSync(screenshotsDir)) {
+                    fs.mkdirSync(screenshotsDir, { recursive: true });
+                }
+                const sanitizedTitle = test.title.replace(/[^a-zA-Z0-9_-]/g, '_');
+                const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+                const filePath = path.join(screenshotsDir, `${sanitizedTitle}_${timestamp}.png`);
+                await driver.saveScreenshot(filePath);
+                console.log(`Saved failure screenshot to: ${filePath}`);
+            } catch (e) {
+                console.error('Failed to capture failure screenshot:', e.message);
+            }
+        }
     },
 
     afterSession: function (config, capabilities, specs) {
@@ -138,10 +200,11 @@ exports.config = {
             console.log('Generating Allure Report...');
             execSync('npx allure generate allure-results --clean --single-file -o allure-report');
 
-            // Rename index.html to include timestamp
+            // Rename index.html to include timestamp and suite name prefix if present
             const timestamp = new Date().toISOString().replace(/T/, '_').replace(/[:.]/g, '-').slice(0, 19);
+            const suitePrefix = process.env.SUITE_NAME || 'Test';
             const oldPath = path.join('allure-report', 'index.html');
-            const newName = `TestReport_${timestamp}.html`;
+            const newName = `${suitePrefix}_Report_${timestamp}.html`;
             const newPath = path.join('allure-report', newName);
 
             if (fs.existsSync(oldPath)) {

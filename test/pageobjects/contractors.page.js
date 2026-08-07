@@ -11,24 +11,24 @@ class ContractorsPage extends BasePage {
     get dropdownCategory() { return $('//*[contains(@content-desc, "All") or contains(@text, "All")]'); }
 
     // List & Empty State Locators
-    get listContractors() { return $$('//android.view.View[contains(@content-desc, "' + "\n" + '")]'); }
+    get listContractors() { return $$('//*[contains(@content-desc, "' + "\n" + '") and not(contains(@content-desc, "Tab ")) and not(contains(@content-desc, "Contractors"))]'); }
     get textEmptyState() { return $('//*[@content-desc[contains(., "No contractors")] or @content-desc[contains(., "no")] or @text[contains(., "No")] or @content-desc[contains(., "Empty")]]'); }
 
     // Dynamic locators based on 0-indexed position in list
     getContractorItem(index) {
-        return $(`(//android.view.View[contains(@content-desc, "` + "\n" + `")])[${index + 1}]`);
+        return $(`(//*[contains(@content-desc, "` + "\n" + `") and not(contains(@content-desc, "Tab ")) and not(contains(@content-desc, "Contractors"))])[${index + 1}]`);
     }
 
     getBtnEmail(index) {
-        return $(`(//android.view.View[contains(@content-desc, "` + "\n" + `")])[${index + 1}]//android.widget.ImageView[1]`);
+        return $(`(//*[contains(@content-desc, "` + "\n" + `") and not(contains(@content-desc, "Tab ")) and not(contains(@content-desc, "Contractors"))])[${index + 1}]//android.widget.ImageView[1]`);
     }
 
     getBtnPhone(index) {
-        return $(`(//android.view.View[contains(@content-desc, "` + "\n" + `")])[${index + 1}]//android.widget.ImageView[2]`);
+        return $(`(//*[contains(@content-desc, "` + "\n" + `") and not(contains(@content-desc, "Tab ")) and not(contains(@content-desc, "Contractors"))])[${index + 1}]//android.widget.ImageView[2]`);
     }
 
     getBtnDocument(index) {
-        return $(`(//android.view.View[contains(@content-desc, "` + "\n" + `")])[${index + 1}]//android.widget.ImageView[1]`);
+        return this.getContractorItem(index);
     }
 
     // Interaction Methods
@@ -38,6 +38,10 @@ class ContractorsPage extends BasePage {
      */
     async selectTab(tabName) {
         this.log(`Switching to sub-tab: "${tabName}"`);
+        const isSearchVisible = await this.inputSearch.isDisplayed().catch(() => false);
+        if (isSearchVisible) {
+            await this.inputSearch.clearValue().catch(() => { });
+        }
         const tabEl = await $(`//*[contains(@content-desc, "${tabName}") or contains(@text, "${tabName}")]`);
         await this.waitAndTap(tabEl, `Sub-Tab "${tabName}"`);
         await browser.pause(1500);
@@ -48,8 +52,17 @@ class ContractorsPage extends BasePage {
      */
     async waitForListOrEmptyState() {
         this.log('Waiting for Contractor list to populate or show empty state...');
+        const AuthHelper = require('../utils/auth.helper');
         try {
             await browser.waitUntil(async () => {
+                // Check if JWT token invalid error is on screen
+                if (await AuthHelper.isTokenInvalid()) {
+                    this.log('WARNING: JWT Token invalid error detected while waiting for Contractor list! Triggering session recovery...');
+                    await AuthHelper.ensureLoggedIn();
+                    const DashboardPage = require('./dashboard.page');
+                    await this.waitAndTap(DashboardPage.widgetContractors, 'Contractors Dashboard Widget');
+                    return false;
+                }
                 const list = await this.listContractors;
                 if (list.length > 0) return true;
                 try {
@@ -58,7 +71,7 @@ class ContractorsPage extends BasePage {
                     return false;
                 }
             }, {
-                timeout: 10000,
+                timeout: 15000,
                 timeoutMsg: 'Expected contractor list to populate or empty state to show'
             });
         } catch (e) {
@@ -74,8 +87,11 @@ class ContractorsPage extends BasePage {
     async searchFor(keyword) {
         this.log(`Searching for contractor keyword: "${keyword}"`);
         await this.waitAndTap(this.inputSearch, 'Search Input');
+        await this.inputSearch.clearValue().catch(() => { });
         await this.inputSearch.setValue(keyword);
-        await browser.pause(2000); // Allow automatic debounced filtering to complete
+        await driver.pressKeyCode(66).catch(() => { }); // Android KEYCODE_ENTER triggers Flutter onChanged
+        await driver.keys(['Enter']).catch(() => { });
+        await browser.pause(3000); // Allow automatic debounced filtering to complete in normal mode
         await driver.hideKeyboard().catch(() => { });
     }
 

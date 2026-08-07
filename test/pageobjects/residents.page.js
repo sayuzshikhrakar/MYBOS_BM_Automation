@@ -29,8 +29,17 @@ class ResidentsPage extends BasePage {
     // Interaction Methods
     async waitForListOrEmptyState() {
         this.log('Waiting for Resident list to populate or show empty state...');
+        const AuthHelper = require('../utils/auth.helper');
         try {
             await browser.waitUntil(async () => {
+                // Check if JWT token invalid error is on screen
+                if (await AuthHelper.isTokenInvalid()) {
+                    this.log('WARNING: JWT Token invalid error detected while waiting for Resident list! Triggering session recovery...');
+                    await AuthHelper.ensureLoggedIn();
+                    const DashboardPage = require('./dashboard.page');
+                    await this.waitAndTap(DashboardPage.widgetResidents, 'Residents Dashboard Widget');
+                    return false;
+                }
                 const list = await this.listResidents;
                 if (list.length > 0) return true;
                 try {
@@ -39,7 +48,7 @@ class ResidentsPage extends BasePage {
                     return false;
                 }
             }, {
-                timeout: 10000,
+                timeout: 15000,
                 timeoutMsg: 'Expected list to populate or empty state to show'
             });
         } catch (e) {

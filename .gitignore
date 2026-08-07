@@ -5,4 +5,5 @@ allure-report/
 *.log
 *.xml
 *.txt
+screenshots/
 capabilities.local.json

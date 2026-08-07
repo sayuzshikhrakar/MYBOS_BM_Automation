@@ -7,6 +7,10 @@ const Utils = require('../utils/utils');
 
 async function navigateToResidents() {
     try {
+        await driver.hideKeyboard().catch(() => { });
+        const onResidents = await ResidentsPage.inputSearch.isDisplayed().catch(() => false);
+        if (onResidents) return;
+
         // Scroll down safely using pointer actions if the widget is not displayed
         for (let i = 0; i < 3; i++) {
             const displayed = await DashboardPage.widgetResidents.isDisplayed().catch(() => false);

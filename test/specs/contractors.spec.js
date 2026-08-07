@@ -7,6 +7,10 @@ const Utils = require('../utils/utils');
 
 async function navigateToContractors() {
     try {
+        await driver.hideKeyboard().catch(() => { });
+        const onContractors = await ContractorsPage.inputSearch.isDisplayed().catch(() => false);
+        if (onContractors) return;
+
         await ContractorsPage.waitAndTap(DashboardPage.widgetContractors, 'Contractors Dashboard Widget');
     } catch (e) {
         const source = await driver.getPageSource();
@@ -54,47 +58,42 @@ describe('Contractors Feature', () => {
         await ContractorsPage.waitForListOrEmptyState();
 
         const list = await ContractorsPage.listContractors;
-        if (list.length > 0) {
-            await expect(list[0]).toBeDisplayed();
-        } else {
-            await expect(ContractorsPage.textEmptyState).toBeDisplayed();
-        }
+        await expect(list.length).toBeGreaterThan(0);
+        const cardContent = await list[0].getAttribute('content-desc').catch(() => '');
+        expect(cardContent).toContain(contractorsData.searchKeywordContact);
     });
 
     it('should_filter_contractors_when_category_selected', async () => {
         await navigateToContractors();
         await ContractorsPage.waitForListOrEmptyState();
 
-        // Try selecting category filter if dropdown is visible
+        // Select positive category filter "Power Equipment Maintenance"
         const isDropdownVisible = await ContractorsPage.dropdownCategory.isDisplayed().catch(() => false);
         if (isDropdownVisible) {
-            await ContractorsPage.selectCategory(contractorsData.categories[1]);
+            await ContractorsPage.selectCategory(contractorsData.categories[2]); // "Power Equipment Maintenance"
             await ContractorsPage.waitForListOrEmptyState();
         }
 
         const list = await ContractorsPage.listContractors;
-        if (list.length > 0) {
-            await expect(list[0]).toBeDisplayed();
-        } else {
-            await expect(ContractorsPage.textEmptyState).toBeDisplayed();
-        }
+        await expect(list.length).toBeGreaterThan(0);
     });
 
     it('should_navigate_to_contractor_details_when_view_details_clicked', async () => {
         await navigateToContractors();
         await ContractorsPage.waitForListOrEmptyState();
 
+        // Search for positive contractor "Michael Johnson" to locate details
+        await ContractorsPage.searchFor(contractorsData.contactDetails.name);
+        await ContractorsPage.waitForListOrEmptyState();
+
         const list = await ContractorsPage.listContractors;
         if (list.length > 0) {
-            const cardContent = await list[0].getAttribute('content-desc').catch(() => '');
-            const firstLine = cardContent ? cardContent.split('\n')[0] : '';
-
             await ContractorsPage.viewDetailsFor(0);
             await browser.pause(2000);
 
-            if (firstLine) {
-                await Utils.verifyFieldVisible(firstLine, 'Contractor Details Header');
-            }
+            // Compare actual fields on Contractor Details screen with expected data from contractors.data.json
+            await Utils.verifyFieldVisible(contractorsData.contactDetails.name, 'Contractor Contact Name');
+            await Utils.verifyFieldVisible(contractorsData.contactDetails.company, 'Contractor Company');
 
             // Return to Contractors list
             await driver.back().catch(() => { });
@@ -191,11 +190,51 @@ describe('Contractors Feature', () => {
         }
     });
 
-    it('should_show_empty_state_when_no_contractors_match', async () => {
-        await navigateToContractors();
+    // ==========================================
+    // Negative Test Cases
+    // ==========================================
 
-        await ContractorsPage.searchFor(contractorsData.searchKeywordNotFound);
+    // =========================================================================
+    // Multi-Tab Negative Test Cases (Contacts, Company, Expired Insurance)
+    // =========================================================================
 
-        await expect(ContractorsPage.textEmptyState).toBeDisplayed();
+    contractorsData.tabs.forEach((tabName) => {
+        // 1. Non-existent keyword search on sub-tab
+        it(`should_show_empty_state_when_no_contractors_match_on_${tabName.toLowerCase().replace(/\s+/g, '_')}_tab`, async () => {
+            await navigateToContractors();
+            await ContractorsPage.selectTab(tabName);
+            await ContractorsPage.waitForListOrEmptyState();
+            await ContractorsPage.searchFor(contractorsData.searchKeywordNotFound); // "NonExistentContractor999"
+            await expect(ContractorsPage.textEmptyState).toBeDisplayed();
+        });
+
+        // 2. Special characters search on sub-tab
+        it(`should_show_empty_state_when_special_characters_searched_on_${tabName.toLowerCase().replace(/\s+/g, '_')}_tab`, async () => {
+            await navigateToContractors();
+            await ContractorsPage.selectTab(tabName);
+            await ContractorsPage.waitForListOrEmptyState();
+            await ContractorsPage.searchFor(contractorsData.searchSpecialCharacters); // "!@#$%^&*()_+"
+            await ContractorsPage.textEmptyState.waitForDisplayed({ timeout: 10000 }).catch(() => { });
+            await expect(ContractorsPage.textEmptyState).toBeDisplayed();
+        });
+
+        // 3. Script / XSS injection search on sub-tab
+        it(`should_handle_script_injection_search_safely_on_${tabName.toLowerCase().replace(/\s+/g, '_')}_tab`, async () => {
+            await navigateToContractors();
+            await ContractorsPage.selectTab(tabName);
+            await ContractorsPage.waitForListOrEmptyState();
+            await ContractorsPage.searchFor(contractorsData.searchScriptInjection);
+            await browser.pause(5000); // Pause right after searchFor to allow search filtering to process
+            await ContractorsPage.textEmptyState.waitForDisplayed({ timeout: 10000 }).catch(() => { });
+            await expect(ContractorsPage.textEmptyState).toBeDisplayed();
+        });
     });
+
+    // 4. Whitespace input search
+    it('should_handle_whitespace_search_safely', async () => {
+        await navigateToContractors();
+        await ContractorsPage.searchFor(contractorsData.searchWhitespace); // "   "
+        await expect(ContractorsPage.inputSearch).toBeDisplayed();
+    });
+
 });

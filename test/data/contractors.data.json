@@ -4,33 +4,29 @@
     "Company",
     "Expired Insurance"
   ],
-  "searchKeywordContact": "Apex",
-  "searchKeywordCompany": "Plumbing",
+  "searchKeywordContact": "Michael Johnson",
+  "searchKeywordCompany": "Cummins Service Canada",
   "searchKeywordNotFound": "NonExistentContractor999",
+  "searchSpecialCharacters": "!@#$%^&*()_+",
+  "searchWhitespace": "   ",
+  "searchScriptInjection": "<script>alert(1)</script>",
+  "searchPartialMatch": "Mich",
   "categories": [
     "All",
-    "Plumbing",
-    "Electrical",
-    "Cleaning",
-    "HVAC"
+    "General",
+    "Power Equipment Maintenance",
+    "Cleaning Service",
+    "Gardeninig",
+    "Landscaping"
   ],
   "contactDetails": {
-    "name": "Alex Mercer",
-    "company": "Apex Plumbing Services",
-    "category": "Plumbing",
-    "phone": "0412345678",
-    "email": "alex.mercer@apexplumbing.com"
+    "name": "Michael Johnson",
+    "company": "Cummins Service Canada",
+    "category": "Power Equipment Maintenance"
   },
   "companyDetails": {
-    "companyName": "Apex Plumbing Services",
-    "category": "Plumbing",
-    "primaryContact": "Alex Mercer",
-    "phone": "0412345678",
-    "email": "info@apexplumbing.com"
-  },
-  "expiredInsuranceDetails": {
-    "contractorName": "Apex Plumbing Services",
-    "expiryDate": "2025-12-31",
-    "documentName": "Certificate_of_Currency.pdf"
+    "companyName": "Cummins Service Canada",
+    "category": "Power Equipment Maintenance",
+    "primaryContact": "Michael Johnson"
   }
 }
