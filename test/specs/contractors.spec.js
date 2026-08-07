@@ -208,7 +208,7 @@ describe('Contractors Feature', () => {
             await expect(ContractorsPage.textEmptyState).toBeDisplayed();
         });
 
-        // // 2. Special characters search on sub-tab
+        // 2. Special characters search on sub-tab
         it(`should_show_empty_state_when_special_characters_searched_on_${tabName.toLowerCase().replace(/\s+/g, '_')}_tab`, async () => {
             await navigateToContractors();
             await ContractorsPage.selectTab(tabName);

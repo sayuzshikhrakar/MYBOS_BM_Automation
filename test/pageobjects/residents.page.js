@@ -36,6 +36,8 @@ class ResidentsPage extends BasePage {
                 if (await AuthHelper.isTokenInvalid()) {
                     this.log('WARNING: JWT Token invalid error detected while waiting for Resident list! Triggering session recovery...');
                     await AuthHelper.ensureLoggedIn();
+                    const DashboardPage = require('./dashboard.page');
+                    await this.waitAndTap(DashboardPage.widgetResidents, 'Residents Dashboard Widget');
                     return false;
                 }
                 const list = await this.listResidents;

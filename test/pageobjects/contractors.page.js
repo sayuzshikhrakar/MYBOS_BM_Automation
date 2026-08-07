@@ -59,6 +59,8 @@ class ContractorsPage extends BasePage {
                 if (await AuthHelper.isTokenInvalid()) {
                     this.log('WARNING: JWT Token invalid error detected while waiting for Contractor list! Triggering session recovery...');
                     await AuthHelper.ensureLoggedIn();
+                    const DashboardPage = require('./dashboard.page');
+                    await this.waitAndTap(DashboardPage.widgetContractors, 'Contractors Dashboard Widget');
                     return false;
                 }
                 const list = await this.listContractors;
