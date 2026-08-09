@@ -104,7 +104,8 @@ exports.config = {
             './test/specs/login.spec.js',
             './test/specs/dashboard.spec.js',
             './test/specs/residents.spec.js',
-            './test/specs/contractors.spec.js'
+            './test/specs/contractors.spec.js',
+            './test/specs/library.spec.js'
         ],
         smoke: [
             './test/specs/login.spec.js',
@@ -124,6 +125,9 @@ exports.config = {
         ],
         contractors: [
             './test/specs/contractors.spec.js'
+        ],
+        library: [
+            './test/specs/library.spec.js'
         ]
     },
 

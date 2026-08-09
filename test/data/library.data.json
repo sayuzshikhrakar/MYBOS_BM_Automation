@@ -1,0 +1,40 @@
+{
+  "searchKeyword": "sample",
+  "searchKeywordUppercase": "SAMPLE",
+  "searchKeywordPartial": "notes",
+  "searchKeywordNotFound": "NonExistentLibraryFile999",
+  "searchSpecialCharacters": "!@#$%^&*()_+",
+  "searchScriptInjection": "<script>alert(1)</script>",
+  "searchWhitespace": "   ",
+  "searchExtension": "pdf",
+  "searchExtensionUppercase": "PDF",
+  "searchExtensionDocx": "docx",
+  "searchExtensionJpg": "jpg",
+  "knownFiles": {
+    "notes": "sample_files_sample_notes.txt",
+    "docx": "sample_files_sample_document.docx",
+    "pdf": "sample_files_sample_report.pdf",
+    "jpg": "file_example_JPG_100kB.jpg"
+  },
+  "supportedExtensions": [
+    "docx",
+    "pdf",
+    "mp4",
+    "xlsx",
+    "jpeg",
+    "jpg",
+    "txt"
+  ],
+  "textEmptyState": "No Data Found",
+  "textDownloadingModal": "downloading file please wait...",
+  "textCancel": "Cancel",
+  "moduleTitle": "Library",
+  "countPatterns": {
+    "singularFolder": "1 folder",
+    "pluralFolders": "folders",
+    "singularFile": "1 file",
+    "pluralFiles": "files",
+    "zeroFolders": "0 folders",
+    "zeroFiles": "0 files"
+  }
+}

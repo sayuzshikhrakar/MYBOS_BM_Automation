@@ -25,6 +25,7 @@ class DashboardPage extends BasePage {
     get widgetResidents() { return $('~Residents'); }
     get widgetParcels() { return $('~Parcels'); }
     get widgetContractors() { return $('~Contractors'); }
+    get widgetLibrary() { return $('~Library'); }
 
     async waitForHome() {
         this.log('Waiting for Dashboard to load...');
@@ -52,6 +53,7 @@ class DashboardPage extends BasePage {
         const activeUdid = driver.capabilities['appium:udid'] || driver.capabilities.udid || 'PRVKMJCEJ7PZGM69';
 
         this.log('Tapping Hamburger menu button...');
+        await this.btnHamburger.waitForDisplayed({ timeout: 15000 });
         await this.btnHamburger.click();
         await browser.pause(2000);
 

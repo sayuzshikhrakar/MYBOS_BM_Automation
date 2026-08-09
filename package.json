@@ -15,6 +15,7 @@
     "test:dashboard": "SUITE_NAME=DashboardTest wdio run wdio.conf.js --suite dashboard",
     "test:residents": "SUITE_NAME=ResidentsTest wdio run wdio.conf.js --suite residents",
     "test:contractors": "SUITE_NAME=ContractorsTest wdio run wdio.conf.js --suite contractors",
+    "test:library": "SUITE_NAME=LibraryTest wdio run wdio.conf.js --suite library",
     "report": "allure generate allure-results --clean --single-file -o allure-report",
     "allure:open": "allure open allure-report"
   },
